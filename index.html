@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0A0F1E" />
+  <title>Reaction Timer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- THREE.JS SCENE -->
+  <script src="scene.js" defer></script>
+  <!-- GAME LOGIC -->
+   <script src="game_logic.js" defer></script>
+   <link rel="stylesheet" href="style.css" />
+   
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- Best Score HUD — top right -->
+<div id="score-hud">
+  <div class="hud-top-label">Best Score</div>
+  <div class="hud-best-val" id="hud-best-val">—</div>
+  <div class="hud-divider"></div>
+  <div class="hud-sub">
+    <div class="hud-sub-item">
+      <div class="hud-sub-val" id="hud-avg-val">—</div>
+      <div class="hud-sub-lbl">Avg</div>
+    </div>
+    <div class="hud-sub-item">
+      <div class="hud-sub-val" id="hud-rounds-val">0</div>
+      <div class="hud-sub-lbl">Rounds</div>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+  <div id="state-idle" class="state-panel active">
+    <div class="card">
+      <h1>Reaction<br><span>Timer</span></h1>
+      <p class="subtitle">Test your reflexes. Hit the moment you see the signal.</p>
+      <button class="btn btn-primary" id="btn-start">Start Game</button>
+    </div>
+  </div>
+
+  <div id="state-waiting" class="state-panel">
+    <div class="card">
+      <span class="wait-icon">⏳</span>
+      <h1 style="font-size:clamp(1.1rem,3.5vw,1.3rem);margin-bottom:0.35rem;">Get Ready…</h1>
+      <p class="subtitle" style="margin-bottom:0.75rem;">Wait for the signal. Don't click early!</p>
+      <div class="rounds-dots" id="waiting-dots"></div>
+      <p class="warning-text" id="early-warning"></p>
+    </div>
+  </div>
+
+  <div id="state-stimulus" class="state-panel">
+    <div class="card">
+      <div class="go-text">GO!</div>
+      <p class="go-sub">Click as fast as you can</p>
+      <button class="btn btn-primary" id="btn-click" style="font-size:clamp(0.9rem,2.5vw,1rem);padding:clamp(0.7rem,2vw,0.9rem) clamp(1.6rem,4vw,2.2rem);">TAP!</button>
+    </div>
+  </div>
+
+  <div id="state-results" class="state-panel">
+    <div class="card">
+      <div class="best-badge" id="result-best-badge" style="display:none">🏆 New Best!</div>
+      <div class="result-time" id="result-time">000</div>
+      <div class="result-ms">milliseconds</div>
+      <div class="result-label" id="result-label"></div>
+      <div class="divider"></div>
+      <div class="stats-row">
+        <div class="stat-item"><span class="stat-label">Average</span><span class="stat-value font-display" id="result-avg">—</span></div>
+        <div class="stat-item"><span class="stat-label">Best</span><span class="stat-value font-display" id="result-best">—</span></div>
+        <div class="stat-item"><span class="stat-label">Rounds</span><span class="stat-value font-display" id="result-rounds">0</span></div>
+      </div>
+      <div class="rounds-dots" id="result-dots"></div>
+      <div class="result-buttons">
+        <button class="btn btn-primary" id="btn-again">Play Again</button>
+        <button class="btn btn-outline" id="btn-reset">Reset</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
