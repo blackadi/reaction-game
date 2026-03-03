@@ -1,88 +1,286 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0A0F1E" />
-  <title>Reaction Timer</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <!-- THREE.JS SCENE -->
-  <script src="scene.js" defer></script>
-  <!-- GAME LOGIC -->
-   <script src="game_logic.js" defer></script>
-   <link rel="stylesheet" href="style.css" />
-   <link rel="icon" type="image/png" href="favicon.svg" />
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0A0F1E" />
+    <title>Reaction Timer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
 
-<canvas id="bg-canvas"></canvas>
+    <!-- THREE.JS SCENE -->
+    <script src="three-scene.js" defer></script>
 
-<!-- Best Score HUD — top right -->
-<div id="score-hud">
-  <div class="hud-top-label">Best Score</div>
-  <div class="hud-best-val" id="hud-best-val">—</div>
-  <div class="hud-divider"></div>
-  <div class="hud-sub">
-    <div class="hud-sub-item">
-      <div class="hud-sub-val" id="hud-avg-val">—</div>
-      <div class="hud-sub-lbl">Avg</div>
-    </div>
-    <div class="hud-sub-item">
-      <div class="hud-sub-val" id="hud-rounds-val">0</div>
-      <div class="hud-sub-lbl">Rounds</div>
-    </div>
-  </div>
-</div>
+    <!-- GAME LOGIC -->
+    <script src="game.js" defer></script>
 
-<div id="app">
-  <div id="state-idle" class="state-panel active">
-    <div class="card">
-      <h1>Reaction<br><span>Timer</span></h1>
-      <p class="subtitle">Test your reflexes. Hit the moment you see the signal.</p>
-      <button class="btn btn-primary" id="btn-start">Start Game</button>
-    </div>
-  </div>
+    <!-- AUDIO ENGINE + SETTINGS -->
+    <script src="settings.js" defer></script>
 
-  <div id="state-waiting" class="state-panel">
-    <div class="card">
-      <span class="wait-icon">⏳</span>
-      <h1 style="font-size:clamp(1.1rem,3.5vw,1.3rem);margin-bottom:0.35rem;">Get Ready…</h1>
-      <p class="subtitle" style="margin-bottom:0.75rem;">Wait for the signal. Don't click early!</p>
-      <div class="rounds-dots" id="waiting-dots"></div>
-      <p class="warning-text" id="early-warning"></p>
-    </div>
-  </div>
+    <!-- ═══════════════════════════════════════════════════════════
+     VISUAL FX ENGINE
+     • 2D canvas particle system (burst, sparks, confetti, trails)
+     • Ripple on every tappable button
+     • Floating score pop-up (+XP text)
+     • Idle idle floating particles in the #app layer
+     ═══════════════════════════════════════════════════════════ -->
+    <script src="fx-engine.js" defer></script>
+  </head>
+  <body>
+    <canvas id="bg-canvas"></canvas>
+    <!-- 2D particle + FX overlay -->
+    <canvas id="fx-canvas"></canvas>
+    <!-- Full-screen flash on GO -->
+    <div id="screen-flash"></div>
 
-  <div id="state-stimulus" class="state-panel">
-    <div class="card">
-      <div class="go-text">GO!</div>
-      <p class="go-sub">Click as fast as you can</p>
-      <button class="btn btn-primary" id="btn-click" style="font-size:clamp(0.9rem,2.5vw,1rem);padding:clamp(0.7rem,2vw,0.9rem) clamp(1.6rem,4vw,2.2rem);">TAP!</button>
-    </div>
-  </div>
+    <!-- Settings toggle button — top left -->
+    <button id="settings-btn" aria-label="Settings">⚙</button>
 
-  <div id="state-results" class="state-panel">
-    <div class="card">
-      <div class="best-badge" id="result-best-badge" style="display:none">🏆 New Best!</div>
-      <div class="result-time" id="result-time">000</div>
-      <div class="result-ms">milliseconds</div>
-      <div class="result-label" id="result-label"></div>
-      <div class="divider"></div>
-      <div class="stats-row">
-        <div class="stat-item"><span class="stat-label">Average</span><span class="stat-value font-display" id="result-avg">—</span></div>
-        <div class="stat-item"><span class="stat-label">Best</span><span class="stat-value font-display" id="result-best">—</span></div>
-        <div class="stat-item"><span class="stat-label">Rounds</span><span class="stat-value font-display" id="result-rounds">0</span></div>
+    <!-- Settings panel -->
+    <div id="settings-panel">
+      <div class="settings-title">⚙ Settings</div>
+
+      <!-- Music toggle + visualiser -->
+      <div class="settings-row">
+        <div class="settings-row-label">
+          <span>🎵</span> Music
+          <div id="music-viz" class="paused">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-music" checked />
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
       </div>
-      <div class="rounds-dots" id="result-dots"></div>
-      <div class="result-buttons">
-        <button class="btn btn-primary" id="btn-again">Play Again</button>
-        <button class="btn btn-outline" id="btn-reset">Reset</button>
+
+      <!-- Music volume -->
+      <div class="settings-row">
+        <div class="settings-row-label"><span>🔊</span> Music Vol</div>
+        <input
+          type="range"
+          class="vol-slider"
+          id="music-vol"
+          min="0"
+          max="1"
+          step="0.05"
+          value="0.3"
+        />
+      </div>
+
+      <!-- SFX toggle -->
+      <div class="settings-row">
+        <div class="settings-row-label"><span>💥</span> SFX</div>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-sfx" checked />
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>
+
+      <!-- SFX volume -->
+      <div class="settings-row">
+        <div class="settings-row-label"><span>🔉</span> SFX Vol</div>
+        <input
+          type="range"
+          class="vol-slider"
+          id="sfx-vol"
+          min="0"
+          max="1"
+          step="0.05"
+          value="0.55"
+        />
       </div>
     </div>
-  </div>
-</div>
-</body>
+
+    <!-- Best Score HUD — top right -->
+    <div id="score-hud">
+      <div class="hud-top-label">Best Score</div>
+      <div class="hud-best-val" id="hud-best-val">—</div>
+      <div class="hud-divider"></div>
+      <div class="hud-sub">
+        <div class="hud-sub-item">
+          <div class="hud-sub-val" id="hud-avg-val">—</div>
+          <div class="hud-sub-lbl">Avg</div>
+        </div>
+        <div class="hud-sub-item">
+          <div class="hud-sub-val" id="hud-rounds-val">0</div>
+          <div class="hud-sub-lbl">Rounds</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Level / XP HUD — bottom left -->
+    <div id="level-hud">
+      <div class="lhud-row">
+        <span class="lhud-level" id="lhud-level-text">Level 1</span>
+        <span class="lhud-title" id="lhud-rank-text">Novice</span>
+      </div>
+      <div class="lhud-xp-track">
+        <div class="lhud-xp-fill" id="lhud-xp-fill"></div>
+      </div>
+      <div class="lhud-xp-label" id="lhud-xp-label">0 / 100 XP</div>
+    </div>
+
+    <!-- Level-up overlay -->
+    <div id="levelup-overlay">
+      <div class="levelup-card">
+        <div class="levelup-burst" id="lu-burst">🐉</div>
+        <div class="levelup-title">LEVEL UP!</div>
+        <div class="levelup-name" id="lu-name">Dragon Warrior</div>
+        <div class="levelup-desc" id="lu-desc">
+          Shorter delays. Sharper reflexes required.
+        </div>
+        <div class="levelup-stat" id="lu-stat">Target: &lt;300ms</div>
+        <button
+          class="btn btn-primary"
+          id="btn-levelup-continue"
+          style="width: 100%"
+        >
+          Continue →
+        </button>
+      </div>
+    </div>
+
+    <div id="app">
+      <!-- State 1: Idle — with difficulty selector -->
+      <div id="state-idle" class="state-panel active">
+        <div class="card">
+          <h1>Reaction<br /><span>Timer</span></h1>
+          <p class="subtitle">
+            Choose your difficulty, then test your reflexes.
+          </p>
+
+          <div class="diff-grid">
+            <button class="diff-btn selected" data-diff="novice">
+              <span class="diff-icon">🟢</span>
+              <span class="diff-name">Novice</span>
+              <span class="diff-range">Target &lt;400ms</span>
+            </button>
+            <button class="diff-btn" data-diff="warrior">
+              <span class="diff-icon">🔵</span>
+              <span class="diff-name">Warrior</span>
+              <span class="diff-range">Target &lt;300ms</span>
+            </button>
+            <button class="diff-btn" data-diff="hunter">
+              <span class="diff-icon">🟠</span>
+              <span class="diff-name">Hunter</span>
+              <span class="diff-range">Target &lt;220ms</span>
+            </button>
+            <button class="diff-btn" data-diff="legend">
+              <span class="diff-icon">🔴</span>
+              <span class="diff-name">Legend</span>
+              <span class="diff-range">Target &lt;160ms</span>
+            </button>
+          </div>
+
+          <button class="btn btn-primary" id="btn-start" style="width: 100%">
+            Start Game
+          </button>
+        </div>
+      </div>
+
+      <!-- State 2: Waiting -->
+      <div id="state-waiting" class="state-panel">
+        <div class="card">
+          <div class="diff-badge" id="waiting-diff-badge"></div>
+          <div class="wait-ring-wrap">
+            <div class="wait-ring"></div>
+            <div class="wait-ring"></div>
+            <div class="wait-ring"></div>
+            <span class="wait-icon">⏳</span>
+          </div>
+          <h1
+            style="
+              font-size: clamp(1.1rem, 3.5vw, 1.3rem);
+              margin-bottom: 0.35rem;
+            "
+          >
+            Get Ready…
+          </h1>
+          <p class="subtitle" style="margin-bottom: 0.75rem">
+            Wait for the signal. Don't click early!
+          </p>
+          <div class="rounds-dots" id="waiting-dots"></div>
+          <p class="warning-text" id="early-warning"></p>
+        </div>
+      </div>
+
+      <!-- State 3: GO! -->
+      <div id="state-stimulus" class="state-panel">
+        <div class="card">
+          <div class="go-text">GO!</div>
+          <p class="go-sub">Click as fast as you can</p>
+          <button
+            class="btn btn-primary ripple-host"
+            id="btn-click"
+            style="
+              font-size: clamp(0.9rem, 2.5vw, 1rem);
+              padding: clamp(0.7rem, 2vw, 0.9rem) clamp(1.6rem, 4vw, 2.2rem);
+            "
+          >
+            TAP!
+          </button>
+        </div>
+      </div>
+
+      <!-- State 4: Results -->
+      <div id="state-results" class="state-panel">
+        <div class="card">
+          <div class="best-badge" id="result-best-badge" style="display: none">
+            🏆 New Best!
+          </div>
+          <div class="result-time-wrap">
+            <div class="result-glow-ring" id="result-glow-ring"></div>
+            <div class="result-time" id="result-time">000</div>
+          </div>
+          <div class="result-ms">milliseconds</div>
+          <div class="result-label" id="result-label"></div>
+          <div
+            style="
+              font-size: clamp(0.72rem, 2vw, 0.78rem);
+              color: var(--muted);
+              margin-bottom: 0.5rem;
+            "
+            id="result-xp-earned"
+          ></div>
+          <div class="divider"></div>
+          <div class="stats-row" id="result-stats-row">
+            <div class="stat-item">
+              <span class="stat-label">Average</span
+              ><span class="stat-value font-display" id="result-avg">—</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Best</span
+              ><span class="stat-value font-display" id="result-best">—</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Rounds</span
+              ><span class="stat-value font-display" id="result-rounds">0</span>
+            </div>
+          </div>
+          <div class="rounds-dots" id="result-dots"></div>
+          <div class="result-buttons">
+            <button class="btn btn-primary ripple-host" id="btn-again">
+              Play Again
+            </button>
+            <button class="btn btn-outline ripple-host" id="btn-reset">
+              Reset
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>
